@@ -7,6 +7,21 @@
     document.querySelector(sel)?.click();
   }
 
+  function triggerFullscreen(attemptsLeft) {
+    const player = document.querySelector('.html5-video-player');
+    const btn    = document.querySelector('.ytp-fullscreen-button');
+
+    if (btn && player) {
+      player.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+      btn.click();
+      return;
+    }
+
+    if (attemptsLeft > 0) {
+      setTimeout(() => triggerFullscreen(attemptsLeft - 1), 250);
+    }
+  }
+
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type !== 'EXECUTE_ACTION') return;
 
@@ -24,18 +39,10 @@
         clickSelector('.ytp-prev-button') || pressKey('P');
         break;
 
-      case 'FULLSCREEN': {
-        const player = document.querySelector('.html5-video-player');
-        if (player) {
-          // Mostrar controles simulando hover, luego clickear
-          player.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, cancelable: true }));
-          player.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
-          setTimeout(() => {
-            document.querySelector('.ytp-fullscreen-button')?.click();
-          }, 150);
-        }
+      case 'FULLSCREEN':
+        window.focus();
+        triggerFullscreen(4);
         break;
-      }
 
       case 'VOLUME_UP':
         pressKey('ArrowUp');
