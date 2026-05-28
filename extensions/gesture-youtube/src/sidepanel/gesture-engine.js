@@ -154,7 +154,7 @@ export class GestureEngine {
     const lm = result?.landmarks?.[0];
 
     if (!lm || lm.length < 21) {
-      this.onScores?.({ palm: 0, fist: 0, swipeR: 0, swipeL: 0 });
+      this.onScores?.({ palm: 0, fist: 0, swipeR: 0, swipeL: 0, pinchOut: 0 });
       return;
     }
 

@@ -5,17 +5,13 @@
   "description": "Controlá el navegador con gestos de mano. Sin tocar nada.",
   "minimum_chrome_version": "116",
   "permissions": [
-    "activeTab",
     "scripting",
-    "storage",
     "sidePanel",
-    "tabs",
-    "offscreen"
+    "tabs"
   ],
   "host_permissions": [
     "https://www.youtube.com/*",
     "https://open.spotify.com/*",
-    "https://storage.googleapis.com/*",
     "https://cdn.jsdelivr.net/*",
     "<all_urls>"
   ],
@@ -25,30 +21,18 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "src/content/global.js"
-      ],
+      "matches": ["<all_urls>"],
+      "js": ["src/content/global.js"],
       "run_at": "document_idle"
     },
     {
-      "matches": [
-        "https://www.youtube.com/*"
-      ],
-      "js": [
-        "src/content/youtube.js"
-      ],
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["src/content/youtube.js"],
       "run_at": "document_idle"
     },
     {
-      "matches": [
-        "https://open.spotify.com/*"
-      ],
-      "js": [
-        "src/content/spotify.js"
-      ],
+      "matches": ["https://open.spotify.com/*"],
+      "js": ["src/content/spotify.js"],
       "run_at": "document_idle"
     }
   ],
