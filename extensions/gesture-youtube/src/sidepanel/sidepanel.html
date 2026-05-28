@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoTouchWeb</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🖐</span>
+      <span class="logo-text">NoTouchWeb</span>
+    </div>
+    <div class="badge" id="fps">— fps</div>
+  </header>
+
+  <section class="status-bar">
+    <span class="dot idle" id="status-dot"></span>
+    <span id="status-text">Inactivo</span>
+  </section>
+
+  <section id="camera-section" class="hidden">
+    <div class="canvas-wrapper">
+      <video id="camera-feed" playsinline muted></video>
+      <canvas id="camera-canvas"></canvas>
+    </div>
+    <div class="gesture-readout">
+      <span class="label">Último gesto</span>
+      <span id="last-gesture">—</span>
+    </div>
+  </section>
+
+  <section class="controls">
+    <button id="btn-toggle">Activar gestos</button>
+  </section>
+
+  <section class="legend">
+    <h3>Gestos disponibles</h3>
+    <ul>
+      <li><span class="gesture-emoji">👆</span> Señalar → Mover cursor</li>
+      <li><span class="gesture-emoji">✊</span> Puño → Click</li>
+      <li><span class="gesture-emoji">↕️</span> Swipe arriba/abajo → Scroll</li>
+      <li><span class="gesture-emoji">↔️</span> Swipe izq/der → Anterior / Siguiente</li>
+      <li><span class="gesture-emoji">✌️</span> Paz → Play / Pause</li>
+    </ul>
+    <p class="hint">Funciona en YouTube y Spotify.<br/>Scroll en cualquier página.</p>
+  </section>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>

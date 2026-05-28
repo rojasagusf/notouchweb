@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "NoTouchWeb — Gesture Control",
+  "version": "0.1.0",
+  "description": "Controlá el navegador con gestos de mano. Sin tocar nada.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "sidePanel",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://open.spotify.com/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "src/background/sw.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/global.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["src/content/youtube.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://open.spotify.com/*"],
+      "js": ["src/content/spotify.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "src/sidepanel/sidepanel.html"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "NoTouchWeb"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
