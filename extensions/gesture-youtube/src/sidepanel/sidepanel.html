@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NoTouchWeb</title>
   <link rel="stylesheet" href="sidepanel.css" />
 </head>
@@ -20,39 +19,51 @@
     <span id="status-text">Inactivo</span>
   </section>
 
-  <section id="runtime-section" class="runtime-section hidden">
-    <div class="runtime-grid">
-      <div>Backend <code id="backend">-</code></div>
-      <div>Hand <code id="hand">no</code></div>
-      <div>Open Palm <code id="open-palm">0.00</code></div>
-      <div>Swipe Right <code id="swipe-right">0.00</code></div>
-      <div>Candidate <code id="candidate">-</code></div>
-      <div>Cooldown <code id="cooldown">ready</code></div>
-      <div>Last Command <code id="last-command">-</code></div>
-    </div>
-
-    <div class="gesture-readout">
-      <span class="label">Último gesto</span>
-      <span id="last-gesture">—</span>
-    </div>
-
-    <div class="error-readout hidden" id="error-readout">
-      <span class="label">Error</span>
-      <span id="error-message">—</span>
-    </div>
-  </section>
-
   <section class="controls">
-    <button id="btn-toggle">Activar gestos</button>
+    <button id="btn-toggle">Iniciar</button>
   </section>
 
-  <section class="legend">
-    <h3>Gestos MVP</h3>
-    <ul>
-      <li><span class="gesture-emoji">🖐</span> Mano abierta sostenida → Play / Pause</li>
-      <li><span class="gesture-emoji">👉</span> Swipe derecha → Siguiente</li>
-    </ul>
-    <p class="hint">Detección corre en offscreen runtime para mantener tracking aunque cierres este panel.</p>
+  <section id="camera-section" class="hidden">
+    <div class="canvas-wrapper">
+      <video id="camera-feed" playsinline muted></video>
+      <canvas id="camera-canvas"></canvas>
+    </div>
+  </section>
+
+  <section class="gestures">
+    <div class="gesture-card" id="card-palm">
+      <div class="card-header">
+        <span class="gesture-name">🖐 Palma abierta</span>
+        <span class="gesture-val" id="val-palm">0%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="bar-palm"></div></div>
+    </div>
+    <div class="gesture-card" id="card-fist">
+      <div class="card-header">
+        <span class="gesture-name">✊ Puño cerrado</span>
+        <span class="gesture-val" id="val-fist">0%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="bar-fist"></div></div>
+    </div>
+    <div class="gesture-card" id="card-swiper">
+      <div class="card-header">
+        <span class="gesture-name">👉 Swipe derecha</span>
+        <span class="gesture-val" id="val-swiper">0%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="bar-swiper"></div></div>
+    </div>
+    <div class="gesture-card" id="card-swipel">
+      <div class="card-header">
+        <span class="gesture-name">👈 Swipe izquierda</span>
+        <span class="gesture-val" id="val-swipel">0%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="bar-swipel"></div></div>
+    </div>
+  </section>
+
+  <section class="log-section">
+    <div class="log-title">Gestos detectados</div>
+    <div id="event-log"></div>
   </section>
 
   <script type="module" src="sidepanel.js"></script>
