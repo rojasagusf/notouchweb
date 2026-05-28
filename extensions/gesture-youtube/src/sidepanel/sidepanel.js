@@ -16,12 +16,14 @@ const scoresBars = {
   fist:   { bar: document.getElementById('bar-fist'),   val: document.getElementById('val-fist'),   threshold: 70 },
   swipeR: { bar: document.getElementById('bar-swiper'), val: document.getElementById('val-swiper'), threshold: 65 },
   swipeL: { bar: document.getElementById('bar-swipel'), val: document.getElementById('val-swipel'), threshold: 65 },
+  pinchOut: { bar: document.getElementById('bar-pinchout'), val: document.getElementById('val-pinchout'), threshold: 68 },
 };
 const cards = {
   OPEN_PALM:   document.getElementById('card-palm'),
   CLOSED_FIST: document.getElementById('card-fist'),
   SWIPE_RIGHT: document.getElementById('card-swiper'),
   SWIPE_LEFT:  document.getElementById('card-swipel'),
+  PINCH_OUT:   document.getElementById('card-pinchout'),
 };
 
 let engine  = null;

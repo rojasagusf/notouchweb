@@ -3,6 +3,7 @@ export const GESTURES = {
   CLOSED_FIST: 'CLOSED_FIST',
   SWIPE_RIGHT: 'SWIPE_RIGHT',
   SWIPE_LEFT:  'SWIPE_LEFT',
+  PINCH_OUT:   'PINCH_OUT',
 };
 
 export const GESTURE_LABELS = {
@@ -10,6 +11,7 @@ export const GESTURE_LABELS = {
   [GESTURES.CLOSED_FIST]: '✊ Puño cerrado',
   [GESTURES.SWIPE_RIGHT]: '👉 Swipe derecha',
   [GESTURES.SWIPE_LEFT]:  '👈 Swipe izquierda',
+  [GESTURES.PINCH_OUT]:   '🤌 Pinch-out → Fullscreen',
 };
 
 export const GESTURE_ACTION_MAP = {
@@ -17,4 +19,5 @@ export const GESTURE_ACTION_MAP = {
   [GESTURES.CLOSED_FIST]: 'PLAY_PAUSE',
   [GESTURES.SWIPE_RIGHT]: 'NEXT_TRACK',
   [GESTURES.SWIPE_LEFT]:  'PREV_TRACK',
+  [GESTURES.PINCH_OUT]:   'FULLSCREEN',
 };

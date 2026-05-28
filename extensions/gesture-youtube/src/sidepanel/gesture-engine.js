@@ -9,6 +9,8 @@ const SETTINGS = {
   palmThreshold:  0.75,
   fistThreshold:  0.70,
   pointThreshold: 0.65,
+  pinchOutThreshold: 0.68,
+  pinchOutMinDist:   0.14,
 
   pointMinCos: 0.72,   // cos mínimo respecto al eje horizontal
   pointMinLen: 0.07,   // largo mínimo vector MCP→TIP
@@ -49,6 +51,7 @@ export class GestureEngine {
       fist:   this._newFSM(),
       swipeR: this._newFSM(),
       swipeL: this._newFSM(),
+      pinchOut: this._newFSM(),
     };
   }
 
@@ -162,14 +165,33 @@ export class GestureEngine {
       fist:   this._scoreFist(lm),
       swipeR: this._scorePointingDir(lm, 'right'),
       swipeL: this._scorePointingDir(lm, 'left'),
+      pinchOut: this._scorePinchOut(lm),
     };
 
     this.onScores?.(scores);
 
-    this._tick(this._fsm.palm,   'OPEN_PALM',   scores.palm,   SETTINGS.palmThreshold,  ts);
-    this._tick(this._fsm.fist,   'CLOSED_FIST', scores.fist,   SETTINGS.fistThreshold,  ts);
-    this._tick(this._fsm.swipeR, 'SWIPE_RIGHT', scores.swipeR, SETTINGS.pointThreshold, ts);
-    this._tick(this._fsm.swipeL, 'SWIPE_LEFT',  scores.swipeL, SETTINGS.pointThreshold, ts);
+    // Candidatos: gestos que superan su threshold individual
+    const candidates = [
+      { key: 'palm',     name: 'OPEN_PALM',   score: scores.palm,     threshold: SETTINGS.palmThreshold     },
+      { key: 'fist',     name: 'CLOSED_FIST', score: scores.fist,     threshold: SETTINGS.fistThreshold     },
+      { key: 'swipeR',   name: 'SWIPE_RIGHT', score: scores.swipeR,   threshold: SETTINGS.pointThreshold    },
+      { key: 'swipeL',   name: 'SWIPE_LEFT',  score: scores.swipeL,   threshold: SETTINGS.pointThreshold    },
+      { key: 'pinchOut', name: 'PINCH_OUT',   score: scores.pinchOut, threshold: SETTINGS.pinchOutThreshold },
+    ].filter(c => c.score >= c.threshold);
+
+    // Winner takes all: solo el de mayor score avanza — los demás se resetean
+    const winner = candidates.reduce((best, c) => c.score > best.score ? c : best, { score: -1 });
+
+    for (const { key, name, score, threshold } of [
+      { key: 'palm',     name: 'OPEN_PALM',   score: scores.palm,     threshold: SETTINGS.palmThreshold     },
+      { key: 'fist',     name: 'CLOSED_FIST', score: scores.fist,     threshold: SETTINGS.fistThreshold     },
+      { key: 'swipeR',   name: 'SWIPE_RIGHT', score: scores.swipeR,   threshold: SETTINGS.pointThreshold    },
+      { key: 'swipeL',   name: 'SWIPE_LEFT',  score: scores.swipeL,   threshold: SETTINGS.pointThreshold    },
+      { key: 'pinchOut', name: 'PINCH_OUT',   score: scores.pinchOut, threshold: SETTINGS.pinchOutThreshold },
+    ]) {
+      const isWinner = winner.score > 0 && key === winner.key;
+      this._tick(this._fsm[key], name, isWinner ? score : 0, threshold, ts);
+    }
   }
 
   // ── FSM ───────────────────────────────────────────────────
@@ -219,6 +241,21 @@ export class GestureEngine {
     }
     const thumbIn = dist2(lm[LM.THUMB_TIP], lm[LM.INDEX_MCP]) < 0.12;
     return clamp01((curled / 4) * 0.8 + (thumbIn ? 1 : 0) * 0.2);
+  }
+
+  _scorePinchOut(lm) {
+    const spread = dist2(lm[LM.THUMB_TIP], lm[LM.INDEX_TIP]);
+    const spreadScore = clamp01((spread - SETTINGS.pinchOutMinDist) / 0.10);
+    if (spreadScore < 0.1) return 0;
+
+    const wrist = lm[LM.WRIST];
+    const middleCurled = dist2(lm[LM.MIDDLE_TIP], wrist) < dist2(lm[LM.MIDDLE_PIP], wrist) * 1.05;
+    const ringCurled   = dist2(lm[LM.RING_TIP],   wrist) < dist2(lm[LM.RING_PIP],   wrist) * 1.05;
+    const pinkyCurled  = dist2(lm[LM.PINKY_TIP],  wrist) < dist2(lm[LM.PINKY_PIP],  wrist) * 1.05;
+    const curledCount  = [middleCurled, ringCurled, pinkyCurled].filter(Boolean).length;
+    const curledScore  = curledCount / 3;
+
+    return clamp01(spreadScore * 0.65 + curledScore * 0.35);
   }
 
   _scorePointingDir(lm, dir) {

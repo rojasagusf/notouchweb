@@ -24,6 +24,19 @@
         clickSelector('.ytp-prev-button') || pressKey('P');
         break;
 
+      case 'FULLSCREEN': {
+        const player = document.querySelector('.html5-video-player');
+        if (player) {
+          // Mostrar controles simulando hover, luego clickear
+          player.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, cancelable: true }));
+          player.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+          setTimeout(() => {
+            document.querySelector('.ytp-fullscreen-button')?.click();
+          }, 150);
+        }
+        break;
+      }
+
       case 'VOLUME_UP':
         pressKey('ArrowUp');
         break;
