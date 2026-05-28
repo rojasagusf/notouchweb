@@ -11,15 +11,9 @@
     if (msg.type !== 'EXECUTE_ACTION') return;
 
     switch (msg.action) {
-      case 'PLAY_PAUSE': {
-        const video = document.querySelector('video');
-        if (video) {
-          video.paused ? video.play() : video.pause();
-        } else {
-          document.querySelector('.ytp-play-button')?.click();
-        }
+      case 'PLAY_PAUSE':
+        document.querySelector('.ytp-play-button')?.click();
         break;
-      }
 
       case 'NEXT_TRACK':
         // next video in queue / playlist
