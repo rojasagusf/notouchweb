@@ -21,7 +21,7 @@
         break;
 
       case 'PREV_TRACK':
-        pressKey('j'); // rewind 10s (no true prev in YT)
+        clickSelector('.ytp-prev-button') || pressKey('P');
         break;
 
       case 'VOLUME_UP':
