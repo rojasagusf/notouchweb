@@ -1,80 +1,131 @@
-import { GestureEngine } from './gesture-engine.js';
 import { MSG } from '../shared/messages.js';
 import { GESTURE_LABELS } from '../shared/gestures.js';
 
-const video  = document.getElementById('camera-feed');
-const canvas = document.getElementById('camera-canvas');
-const btnToggle    = document.getElementById('btn-toggle');
-const statusDot    = document.getElementById('status-dot');
-const statusText   = document.getElementById('status-text');
-const fpsEl        = document.getElementById('fps');
-const gestureEl    = document.getElementById('last-gesture');
-const cameraSection = document.getElementById('camera-section');
+const btnToggle = document.getElementById('btn-toggle');
+const statusDot = document.getElementById('status-dot');
+const statusText = document.getElementById('status-text');
+const fpsEl = document.getElementById('fps');
 
-let engine  = null;
+const runtimeSection = document.getElementById('runtime-section');
+const backendEl = document.getElementById('backend');
+const handEl = document.getElementById('hand');
+const openPalmEl = document.getElementById('open-palm');
+const swipeRightEl = document.getElementById('swipe-right');
+const candidateEl = document.getElementById('candidate');
+const cooldownEl = document.getElementById('cooldown');
+const commandEl = document.getElementById('last-command');
+
+const gestureEl = document.getElementById('last-gesture');
+const errorReadoutEl = document.getElementById('error-readout');
+const errorMessageEl = document.getElementById('error-message');
+
 let enabled = false;
+let lastGestureTimestampSeen = 0;
 
-async function enable() {
-  setStatus('loading', 'Iniciando cámara…');
+btnToggle.addEventListener('click', async () => {
   btnToggle.disabled = true;
 
-  engine = new GestureEngine(video, canvas, {
-    onGesture:    handleGesture,
-    onFps:        (fps) => { fpsEl.textContent = `${fps} fps`; },
-    onCursorMove: sendCursorMove,
-  });
+  if (enabled) {
+    await sendRuntimeMessage({ type: MSG.DISABLE }).catch((error) => {
+      setStatus('error', `No se pudo desactivar: ${error.message}`);
+    });
+  } else {
+    setStatus('loading', 'Iniciando runtime…');
+    await sendRuntimeMessage({ type: MSG.ENABLE }).catch((error) => {
+      setStatus('error', `No se pudo activar: ${error.message}`);
+    });
+  }
 
-  try {
-    await engine.start();
-  } catch (e) {
-    setStatus('error', 'Error de cámara: ' + e.message);
-    btnToggle.disabled = false;
-    engine = null;
+  btnToggle.disabled = false;
+  await refreshStatus();
+});
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.type !== MSG.STATUS_UPDATE) {
     return;
   }
 
-  enabled = true;
-  cameraSection.classList.remove('hidden');
-  setStatus('active', 'Detectando gestos');
-  btnToggle.textContent = 'Desactivar';
-  btnToggle.classList.add('active');
-  btnToggle.disabled = false;
+  applyStatus(msg.payload);
+});
 
-  await chrome.runtime.sendMessage({ type: MSG.ENABLE });
+void refreshStatus();
+
+async function refreshStatus() {
+  const payload = await sendRuntimeMessage({ type: MSG.GET_STATUS }).catch((error) => {
+    setStatus('error', `Runtime desconectado: ${error.message}`);
+    return null;
+  });
+
+  if (!payload) {
+    return;
+  }
+
+  applyStatus(payload);
 }
 
-async function disable() {
-  engine?.stop();
-  engine = null;
-  enabled = false;
+function applyStatus(status) {
+  if (!status || typeof status !== 'object') {
+    return;
+  }
 
-  cameraSection.classList.add('hidden');
-  setStatus('idle', 'Inactivo');
-  btnToggle.textContent = 'Activar gestos';
-  btnToggle.classList.remove('active');
-  fpsEl.textContent = '— fps';
-  gestureEl.textContent = '—';
+  enabled = Boolean(status.enabled);
 
-  await chrome.runtime.sendMessage({ type: MSG.DISABLE });
-}
+  const detection = status.detection ?? {};
+  const running = Boolean(detection.running);
 
-function handleGesture(gesture) {
-  const label = GESTURE_LABELS[gesture] ?? gesture;
-  gestureEl.textContent = label;
-  gestureEl.classList.add('flash');
-  setTimeout(() => gestureEl.classList.remove('flash'), 400);
+  if (!enabled) {
+    setStatus('idle', 'Inactivo');
+  } else if (enabled && !running) {
+    setStatus('loading', 'Inicializando detección…');
+  } else if (enabled && running) {
+    setStatus('active', 'Detectando gestos');
+  }
 
-  chrome.runtime.sendMessage({ type: MSG.GESTURE_DETECTED, gesture });
-}
+  btnToggle.textContent = enabled ? 'Desactivar' : 'Activar gestos';
+  btnToggle.classList.toggle('active', enabled);
 
-async function sendCursorMove(x, y) {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }).catch(() => []);
-  if (!tab) return;
-  chrome.tabs.sendMessage(tab.id, {
-    type: MSG.EXECUTE_ACTION,
-    action: 'MOVE_CURSOR',
-    payload: { x, y },
-  }).catch(() => {});
+  runtimeSection.classList.toggle('hidden', !enabled);
+
+  fpsEl.textContent = `${Number(detection.fps ?? 0)} fps`;
+  backendEl.textContent = detection.backend ?? '-';
+  handEl.textContent = detection.handDetected ? 'yes' : 'no';
+  openPalmEl.textContent = Number(detection.openPalmConfidence ?? 0).toFixed(2);
+  swipeRightEl.textContent = Number(detection.swipeRightConfidence ?? 0).toFixed(2);
+  candidateEl.textContent = detection.candidate ?? '-';
+
+  const cooldownMs = Number(detection.cooldownRemainingMs ?? 0);
+  cooldownEl.textContent = cooldownMs > 0 ? `${cooldownMs}ms` : 'ready';
+
+  const gestureTimestamp = Number(status.lastGesture?.timestampMs ?? 0);
+  if (status.lastGesture?.gesture) {
+    const label = GESTURE_LABELS[status.lastGesture.gesture] ?? status.lastGesture.gesture;
+    gestureEl.textContent = label;
+
+    if (gestureTimestamp > lastGestureTimestampSeen) {
+      lastGestureTimestampSeen = gestureTimestamp;
+      gestureEl.classList.add('flash');
+      setTimeout(() => gestureEl.classList.remove('flash'), 350);
+    }
+  } else {
+    gestureEl.textContent = '—';
+    lastGestureTimestampSeen = 0;
+  }
+
+  if (status.lastAction?.action) {
+    const suffix = status.lastAction.ok === false ? ' (failed)' : '';
+    commandEl.textContent = `${status.lastAction.action}${suffix}`;
+  } else {
+    commandEl.textContent = '-';
+  }
+
+  const error = detection.lastError;
+  if (error) {
+    errorMessageEl.textContent = error;
+    errorReadoutEl.classList.remove('hidden');
+  } else {
+    errorMessageEl.textContent = '—';
+    errorReadoutEl.classList.add('hidden');
+  }
 }
 
 function setStatus(state, text) {
@@ -82,15 +133,13 @@ function setStatus(state, text) {
   statusText.textContent = text;
 }
 
-btnToggle.addEventListener('click', () => {
-  enabled ? disable() : enable();
-});
+async function sendRuntimeMessage(message) {
+  const response = await chrome.runtime.sendMessage(message);
 
-// Sync state on open
-chrome.runtime.sendMessage({ type: MSG.GET_STATUS }, (res) => {
-  if (res?.enabled) enable();
-});
+  if (!response?.ok) {
+    const messageText = response?.error ?? 'Unknown extension error';
+    throw new Error(messageText);
+  }
 
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === MSG.STATUS_UPDATE && !msg.enabled && enabled) disable();
-});
+  return response.payload;
+}

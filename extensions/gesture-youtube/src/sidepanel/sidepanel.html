@@ -20,14 +20,25 @@
     <span id="status-text">Inactivo</span>
   </section>
 
-  <section id="camera-section" class="hidden">
-    <div class="canvas-wrapper">
-      <video id="camera-feed" playsinline muted></video>
-      <canvas id="camera-canvas"></canvas>
+  <section id="runtime-section" class="runtime-section hidden">
+    <div class="runtime-grid">
+      <div>Backend <code id="backend">-</code></div>
+      <div>Hand <code id="hand">no</code></div>
+      <div>Open Palm <code id="open-palm">0.00</code></div>
+      <div>Swipe Right <code id="swipe-right">0.00</code></div>
+      <div>Candidate <code id="candidate">-</code></div>
+      <div>Cooldown <code id="cooldown">ready</code></div>
+      <div>Last Command <code id="last-command">-</code></div>
     </div>
+
     <div class="gesture-readout">
       <span class="label">Último gesto</span>
       <span id="last-gesture">—</span>
+    </div>
+
+    <div class="error-readout hidden" id="error-readout">
+      <span class="label">Error</span>
+      <span id="error-message">—</span>
     </div>
   </section>
 
@@ -36,15 +47,12 @@
   </section>
 
   <section class="legend">
-    <h3>Gestos disponibles</h3>
+    <h3>Gestos MVP</h3>
     <ul>
-      <li><span class="gesture-emoji">👆</span> Señalar → Mover cursor</li>
-      <li><span class="gesture-emoji">✊</span> Puño → Click</li>
-      <li><span class="gesture-emoji">↕️</span> Swipe arriba/abajo → Scroll</li>
-      <li><span class="gesture-emoji">↔️</span> Swipe izq/der → Anterior / Siguiente</li>
-      <li><span class="gesture-emoji">✌️</span> Paz → Play / Pause</li>
+      <li><span class="gesture-emoji">🖐</span> Mano abierta sostenida → Play / Pause</li>
+      <li><span class="gesture-emoji">👉</span> Swipe derecha → Siguiente</li>
     </ul>
-    <p class="hint">Funciona en YouTube y Spotify.<br/>Scroll en cualquier página.</p>
+    <p class="hint">Detección corre en offscreen runtime para mantener tracking aunque cierres este panel.</p>
   </section>
 
   <script type="module" src="sidepanel.js"></script>
